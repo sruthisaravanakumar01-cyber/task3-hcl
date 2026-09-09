@@ -1,0 +1,3522 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Weathervane — Current Conditions</title>
+
+<style>
+
+/* =========================================================
+   BASIC
+========================================================= */
+
+:root {
+    --ink: #1a1a2e;
+    --paper: #fdf6ec;
+    --accent: #ff6b6b;
+    --accent2: #4ecdc4;
+    --warn: #e63946;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: 'Poppins', 'Segoe UI', system-ui, sans-serif;
+    background: var(--paper);
+
+    background-image:
+        radial-gradient(
+            circle at 10% 20%,
+            rgba(255,107,107,.08),
+            transparent 40%
+        ),
+        radial-gradient(
+            circle at 90% 80%,
+            rgba(78,205,196,.10),
+            transparent 40%
+        );
+
+    color: var(--ink);
+
+    min-height: 100vh;
+
+    display: flex;
+    justify-content: center;
+
+    padding: 48px 20px;
+}
+
+.sheet {
+    width: 100%;
+    max-width: 640px;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.masthead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 28px;
+    gap: 16px;
+}
+
+.masthead h1 {
+    font-size: 2.1rem;
+    margin: 0;
+    font-weight: 800;
+
+    background:
+        linear-gradient(
+            90deg,
+            #ff6b6b,
+            #ffd166,
+            #4ecdc4
+        );
+
+    -webkit-background-clip: text;
+    background-clip: text;
+
+    color: transparent;
+}
+
+.date-badge {
+    width: 78px;
+    flex-shrink: 0;
+
+    background: #fff;
+
+    border-radius: 12px;
+
+    box-shadow:
+        0 8px 18px rgba(26,26,46,.14);
+
+    overflow: hidden;
+
+    text-align: center;
+
+    transform: rotate(2deg);
+}
+
+.date-badge .tab {
+    background:
+        linear-gradient(
+            90deg,
+            #ff6b6b,
+            #ff8e53
+        );
+
+    color: #fff;
+
+    font-size: .62rem;
+    font-weight: 800;
+
+    padding: 4px 0;
+
+    text-transform: uppercase;
+}
+
+.date-badge .day-num {
+    font-size: 1.8rem;
+    font-weight: 800;
+
+    line-height: 1.1;
+
+    padding-top: 4px;
+}
+
+.date-badge .weekday {
+    font-size: .68rem;
+    font-weight: 700;
+
+    color: var(--accent2);
+}
+
+.date-badge .month-year {
+    font-size: .6rem;
+
+    opacity: .55;
+
+    padding-bottom: 6px;
+
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+.controls-row {
+    display: flex;
+
+    gap: 10px;
+
+    margin-bottom: 6px;
+
+    flex-wrap: wrap;
+}
+
+form.search {
+    display: flex;
+
+    gap: 10px;
+
+    flex: 1;
+
+    min-width: 220px;
+}
+
+form.search input {
+    flex: 1;
+
+    font-family: inherit;
+
+    font-size: 1.05rem;
+
+    padding: 14px 18px;
+
+    border: none;
+
+    border-radius: 999px;
+
+    background: #fff;
+
+    color: var(--ink);
+
+    box-shadow:
+        0 4px 14px rgba(26,26,46,.08);
+
+    min-width: 0;
+}
+
+form.search input:focus {
+    outline: none;
+
+    box-shadow:
+        0 0 0 3px rgba(78,205,196,.4);
+}
+
+button {
+    font-family: inherit;
+
+    font-size: 1.02rem;
+
+    font-weight: 700;
+
+    padding: 14px 22px;
+
+    border: none;
+
+    border-radius: 999px;
+
+    cursor: pointer;
+
+    transition: .15s;
+}
+
+button:disabled {
+    opacity: .5;
+
+    cursor: default;
+}
+
+#searchBtn {
+    background:
+        linear-gradient(
+            90deg,
+            #ff6b6b,
+            #ff8e53
+        );
+
+    color: #fff;
+
+    box-shadow:
+        0 4px 14px rgba(255,107,107,.35);
+}
+
+#locateBtn {
+    background:
+        linear-gradient(
+            90deg,
+            #4ecdc4,
+            #45b7af
+        );
+
+    color: #fff;
+
+    box-shadow:
+        0 4px 14px rgba(78,205,196,.35);
+}
+
+.unit-toggle {
+    display: flex;
+
+    background: #fff;
+
+    border-radius: 999px;
+
+    padding: 4px;
+
+    box-shadow:
+        0 4px 14px rgba(26,26,46,.08);
+}
+
+.unit-toggle button {
+    padding: 10px 18px;
+
+    background: transparent;
+
+    color: var(--ink);
+
+    box-shadow: none;
+}
+
+.unit-toggle button.active {
+    background:
+        linear-gradient(
+            90deg,
+            #6c5ce7,
+            #a29bfe
+        );
+
+    color: #fff;
+}
+
+.hint {
+    font-size: .82rem;
+
+    opacity: .55;
+
+    margin:
+        10px 0 30px 6px;
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.status {
+    display: none;
+
+    padding: 14px 18px;
+
+    border-radius: 16px;
+
+    background: #ffe0e0;
+
+    color: var(--warn);
+
+    font-weight: 600;
+
+    margin-bottom: 24px;
+}
+
+.status.visible {
+    display: block;
+}
+
+.status.loading {
+    background: #fff3cd;
+
+    color: #8a6d00;
+}
+
+
+/* =========================================================
+   WEATHER CARD
+========================================================= */
+
+.card {
+    display: none;
+
+    position: relative;
+
+    border-radius: 28px;
+
+    padding: 36px 32px;
+
+    color: #fff;
+
+    box-shadow:
+        0 20px 40px rgba(26,26,46,.18);
+
+    overflow: hidden;
+
+    isolation: isolate;
+}
+
+.card.visible {
+    display: block;
+}
+
+
+/* CLEAR */
+
+.card.theme-clear {
+    background:
+        linear-gradient(
+            160deg,
+            #ff9a56,
+            #ff6b6b
+        );
+}
+
+
+/* CLOUDY */
+
+.card.theme-cloudy {
+    background:
+        linear-gradient(
+            160deg,
+            #7f8c9a,
+            #4b5d6b
+        );
+}
+
+
+/* RAIN */
+
+.card.theme-rain {
+    background:
+        linear-gradient(
+            160deg,
+            #4e6f8c,
+            #2c3e50
+        );
+}
+
+
+/* STORM */
+
+.card.theme-storm {
+    background:
+        linear-gradient(
+            160deg,
+            #4a3f6d,
+            #1f1b30
+        );
+}
+
+
+/* SNOW */
+
+.card.theme-snow {
+    background:
+        linear-gradient(
+            160deg,
+            #a8c8e8,
+            #6b93b8
+        );
+}
+
+
+/* FOG */
+
+.card.theme-fog {
+    background:
+        linear-gradient(
+            160deg,
+            #b8b8b8,
+            #7d7d7d
+        );
+}
+
+
+/* =========================================================
+   EFFECT LAYER
+========================================================= */
+
+.fx-layer {
+    position: absolute;
+
+    inset: 0;
+
+    z-index: 0;
+
+    overflow: hidden;
+
+    pointer-events: none;
+}
+
+.card > *:not(.fx-layer) {
+    position: relative;
+
+    z-index: 2;
+}
+
+
+/* =========================================================
+   WEATHER EFFECTS
+========================================================= */
+
+.fx-ray {
+    position: absolute;
+
+    top: 10%;
+
+    font-size: 1.5rem;
+
+    animation:
+        sparkle 3s ease-in-out infinite;
+}
+
+@keyframes sparkle {
+
+    0%,100% {
+        opacity: .2;
+
+        transform:
+            scale(.8)
+            rotate(0);
+    }
+
+    50% {
+        opacity: 1;
+
+        transform:
+            scale(1.3)
+            rotate(20deg);
+    }
+}
+
+
+.fx-cloud {
+    position: absolute;
+
+    font-size: 2rem;
+
+    opacity: .5;
+
+    animation:
+        drift linear infinite;
+}
+
+@keyframes drift {
+
+    from {
+        transform:
+            translateX(-20%);
+    }
+
+    to {
+        transform:
+            translateX(120%);
+    }
+}
+
+
+.fx-drop {
+    position: absolute;
+
+    top: -10%;
+
+    font-size: 1rem;
+
+    animation:
+        fall linear infinite;
+}
+
+@keyframes fall {
+
+    from {
+        transform:
+            translateY(-20px);
+
+        opacity: 0;
+    }
+
+    10% {
+        opacity: .9;
+    }
+
+    to {
+        transform:
+            translateY(400px);
+
+        opacity: .2;
+    }
+}
+
+
+.fx-flake {
+    position: absolute;
+
+    top: -10%;
+
+    font-size: 1.1rem;
+
+    animation:
+        snowFall linear infinite;
+}
+
+@keyframes snowFall {
+
+    0% {
+        transform:
+            translate(0,-20px)
+            rotate(0);
+
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 1;
+    }
+
+    50% {
+        transform:
+            translate(25px,200px)
+            rotate(180deg);
+    }
+
+    100% {
+        transform:
+            translate(-15px,420px)
+            rotate(360deg);
+
+        opacity: .2;
+    }
+}
+
+
+.fx-bolt {
+    position: absolute;
+
+    top: 8%;
+    right: 14%;
+
+    font-size: 2.5rem;
+
+    animation:
+        lightning 3s infinite;
+}
+
+@keyframes lightning {
+
+    0%,88%,100% {
+        opacity: 0;
+    }
+
+    90% {
+        opacity: 1;
+    }
+
+    93% {
+        opacity: .2;
+    }
+
+    95% {
+        opacity: 1;
+    }
+
+    97% {
+        opacity: 0;
+    }
+}
+
+
+/* =========================================================
+   REALISTIC BIRD
+========================================================= */
+
+.real-bird {
+    position: absolute;
+
+    width: 75px;
+    height: 50px;
+
+    animation:
+        birdFly linear infinite;
+}
+
+
+/* BODY */
+
+.bird-body {
+    position: absolute;
+
+    width: 32px;
+    height: 17px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #252525,
+            #111
+        );
+
+    border-radius:
+        60% 40% 50% 50%;
+
+    left: 22px;
+    top: 19px;
+
+    box-shadow:
+        2px 3px 4px rgba(0,0,0,.25);
+}
+
+
+/* HEAD */
+
+.bird-head {
+    position: absolute;
+
+    width: 17px;
+    height: 17px;
+
+    background: #191919;
+
+    border-radius: 50%;
+
+    left: 44px;
+    top: 12px;
+}
+
+
+/* BEAK */
+
+.bird-beak {
+    position: absolute;
+
+    left: 58px;
+    top: 17px;
+
+    width: 0;
+    height: 0;
+
+    border-top:
+        4px solid transparent;
+
+    border-bottom:
+        4px solid transparent;
+
+    border-left:
+        11px solid #d99a32;
+}
+
+
+/* EYE */
+
+.bird-eye {
+    position: absolute;
+
+    left: 53px;
+    top: 15px;
+
+    width: 4px;
+    height: 4px;
+
+    background: white;
+
+    border-radius: 50%;
+
+    box-shadow:
+        0 0 2px white;
+}
+
+
+/* WINGS */
+
+.bird-wing {
+    position: absolute;
+
+    width: 36px;
+    height: 15px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #333,
+            #111
+        );
+
+    border-radius:
+        100% 0 100% 0;
+
+    left: 10px;
+    top: 7px;
+
+    transform-origin:
+        90% 90%;
+
+    animation:
+        wingFlap .20s
+        ease-in-out infinite
+        alternate;
+}
+
+.bird-wing.back {
+    left: 25px;
+    top: 15px;
+
+    opacity: .75;
+
+    animation-delay:
+        -.1s;
+}
+
+@keyframes wingFlap {
+
+    from {
+        transform:
+            rotate(18deg)
+            scaleY(1);
+    }
+
+    to {
+        transform:
+            rotate(-42deg)
+            scaleY(.55);
+    }
+}
+
+
+/* BIRD FLIGHT */
+
+@keyframes birdFly {
+
+    0% {
+        left: -100px;
+
+        transform:
+            translateY(0)
+            rotate(2deg);
+    }
+
+    15% {
+        transform:
+            translateY(-35px)
+            rotate(-5deg);
+    }
+
+    30% {
+        transform:
+            translateY(5px)
+            rotate(3deg);
+    }
+
+    45% {
+        transform:
+            translateY(-30px)
+            rotate(-4deg);
+    }
+
+    60% {
+        transform:
+            translateY(10px)
+            rotate(4deg);
+    }
+
+    75% {
+        transform:
+            translateY(-25px)
+            rotate(-3deg);
+    }
+
+    100% {
+        left: 110%;
+
+        transform:
+            translateY(0)
+            rotate(2deg);
+    }
+}
+
+
+/* =========================================================
+   REALISTIC BUTTERFLY
+========================================================= */
+
+.real-butterfly {
+
+    position: absolute;
+
+    width: 50px;
+    height: 50px;
+
+    animation:
+        butterflyFlight
+        8s ease-in-out infinite;
+}
+
+
+/* BODY */
+
+.butterfly-body {
+
+    position: absolute;
+
+    width: 6px;
+    height: 28px;
+
+    background:
+        linear-gradient(
+            #222,
+            #000
+        );
+
+    border-radius: 50%;
+
+    left: 22px;
+    top: 10px;
+
+    z-index: 5;
+}
+
+
+/* WINGS */
+
+.butterfly-wing {
+
+    position: absolute;
+
+    width: 22px;
+    height: 27px;
+
+    border-radius:
+        75% 25% 70% 30%;
+
+    animation:
+        butterflyFlap
+        .18s
+        ease-in-out
+        infinite
+        alternate;
+}
+
+.butterfly-wing.left {
+    left: 1px;
+}
+
+.butterfly-wing.right {
+    left: 27px;
+
+    transform:
+        scaleX(-1);
+}
+
+
+/* UPPER */
+
+.butterfly-wing.top {
+    top: 3px;
+}
+
+
+/* LOWER */
+
+.butterfly-wing.bottom {
+    top: 22px;
+
+    width: 17px;
+    height: 18px;
+}
+
+
+@keyframes butterflyFlap {
+
+    from {
+        transform:
+            rotateY(0deg)
+            rotateZ(-3deg);
+    }
+
+    to {
+        transform:
+            rotateY(70deg)
+            rotateZ(5deg);
+    }
+}
+
+
+@keyframes butterflyFlight {
+
+    0% {
+        left: -30px;
+        top: 70%;
+    }
+
+    20% {
+        left: 18%;
+        top: 55%;
+    }
+
+    40% {
+        left: 38%;
+        top: 68%;
+    }
+
+    60% {
+        left: 58%;
+        top: 48%;
+    }
+
+    80% {
+        left: 78%;
+        top: 65%;
+    }
+
+    100% {
+        left: 110%;
+        top: 45%;
+    }
+}
+
+
+/* =========================================================
+   DRAGONFLY
+========================================================= */
+
+.dragonfly {
+
+    position: absolute;
+
+    width: 65px;
+    height: 45px;
+
+    animation:
+        dragonflyMove
+        6s ease-in-out infinite;
+}
+
+.dragon-body {
+
+    position: absolute;
+
+    width: 7px;
+    height: 35px;
+
+    background:
+        linear-gradient(
+            #263238,
+            #111
+        );
+
+    border-radius: 50%;
+
+    left: 29px;
+    top: 5px;
+}
+
+
+.dragon-wing {
+
+    position: absolute;
+
+    width: 28px;
+    height: 12px;
+
+    background:
+        rgba(220,245,255,.65);
+
+    border:
+        1px solid
+        rgba(255,255,255,.8);
+
+    border-radius: 80%;
+
+    animation:
+        dragonWing
+        .10s
+        linear
+        infinite
+        alternate;
+}
+
+.dragon-wing.one {
+    left: 2px;
+    top: 7px;
+
+    transform:
+        rotate(-20deg);
+}
+
+.dragon-wing.two {
+    left: 34px;
+    top: 7px;
+
+    transform:
+        rotate(20deg);
+}
+
+.dragon-wing.three {
+    left: 2px;
+    top: 21px;
+
+    transform:
+        rotate(20deg);
+}
+
+.dragon-wing.four {
+    left: 34px;
+    top: 21px;
+
+    transform:
+        rotate(-20deg);
+}
+
+
+@keyframes dragonWing {
+
+    from {
+        transform:
+            scaleY(1);
+    }
+
+    to {
+        transform:
+            scaleY(.2);
+    }
+}
+
+
+@keyframes dragonflyMove {
+
+    0% {
+        left: -50px;
+        top: 65%;
+    }
+
+    25% {
+        left: 25%;
+        top: 45%;
+    }
+
+    50% {
+        left: 45%;
+        top: 65%;
+    }
+
+    75% {
+        left: 70%;
+        top: 40%;
+    }
+
+    100% {
+        left: 110%;
+        top: 55%;
+    }
+}
+
+
+/* =========================================================
+   FIREFLY
+========================================================= */
+
+.firefly-real {
+
+    position: absolute;
+
+    width: 8px;
+    height: 8px;
+
+    border-radius: 50%;
+
+    background: #fff6a8;
+
+    box-shadow:
+        0 0 6px #fff6a8,
+        0 0 15px #fff6a8,
+        0 0 28px #fff6a8;
+
+    animation:
+        fireflyGlow
+        1.5s
+        ease-in-out
+        infinite
+        alternate,
+        fireflyMove
+        5s
+        ease-in-out
+        infinite;
+}
+
+
+@keyframes fireflyGlow {
+
+    from {
+        opacity: .15;
+        transform: scale(.5);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1.5);
+    }
+}
+
+
+@keyframes fireflyMove {
+
+    0% {
+        margin-left: 0;
+        margin-top: 0;
+    }
+
+    25% {
+        margin-left: 50px;
+        margin-top: -30px;
+    }
+
+    50% {
+        margin-left: 100px;
+        margin-top: 20px;
+    }
+
+    75% {
+        margin-left: 40px;
+        margin-top: 50px;
+    }
+
+    100% {
+        margin-left: 0;
+        margin-top: 0;
+    }
+}
+
+
+/* =========================================================
+   REALISTIC FROG
+========================================================= */
+
+.real-frog {
+
+    position: absolute;
+
+    width: 60px;
+    height: 45px;
+
+    bottom: 5%;
+
+    animation:
+        frogJump
+        3s
+        ease-in-out
+        infinite;
+}
+
+
+.frog-body {
+
+    position: absolute;
+
+    width: 45px;
+    height: 28px;
+
+    background:
+        radial-gradient(
+            circle at 30% 25%,
+            #79b84a,
+            #34732d
+        );
+
+    border-radius:
+        60% 60% 45% 45%;
+
+    left: 7px;
+    top: 15px;
+}
+
+
+.frog-eye {
+
+    position: absolute;
+
+    width: 13px;
+    height: 13px;
+
+    background: #73b743;
+
+    border-radius: 50%;
+
+    top: 6px;
+
+    z-index: 2;
+}
+
+
+.frog-eye.left {
+    left: 12px;
+}
+
+.frog-eye.right {
+    left: 38px;
+}
+
+
+.frog-pupil {
+
+    position: absolute;
+
+    width: 4px;
+    height: 4px;
+
+    background: #111;
+
+    border-radius: 50%;
+
+    left: 4px;
+    top: 4px;
+}
+
+
+@keyframes frogJump {
+
+    0%,100% {
+        transform:
+            translateX(0)
+            translateY(0);
+    }
+
+    35% {
+        transform:
+            translateX(65px)
+            translateY(-50px);
+    }
+
+    65% {
+        transform:
+            translateX(130px)
+            translateY(0);
+    }
+}
+
+
+/* =========================================================
+   REALISTIC SNAIL
+========================================================= */
+
+.real-snail {
+
+    position: absolute;
+
+    width: 65px;
+    height: 45px;
+
+    bottom: 2%;
+
+    animation:
+        snailWalk
+        16s
+        linear
+        infinite;
+}
+
+
+.snail-shell {
+
+    position: absolute;
+
+    width: 31px;
+    height: 31px;
+
+    background:
+        radial-gradient(
+            circle,
+            #c8894b,
+            #75451f
+        );
+
+    border-radius: 50%;
+
+    left: 7px;
+    top: 5px;
+
+    border:
+        3px solid #593418;
+}
+
+
+.snail-shell::after {
+
+    content: "";
+
+    position: absolute;
+
+    width: 13px;
+    height: 13px;
+
+    border:
+        2px solid #e0aa67;
+
+    border-radius: 50%;
+
+    left: 5px;
+    top: 5px;
+}
+
+
+.snail-head {
+
+    position: absolute;
+
+    width: 25px;
+    height: 19px;
+
+    background:
+        #82a957;
+
+    border-radius: 50%;
+
+    left: 35px;
+    top: 20px;
+}
+
+
+@keyframes snailWalk {
+
+    from {
+        left: -70px;
+    }
+
+    to {
+        left: 110%;
+    }
+}
+
+
+/* =========================================================
+   WEATHER CONTENT
+========================================================= */
+
+.location {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: baseline;
+
+    margin-bottom: 4px;
+}
+
+.location h2 {
+    margin: 0;
+
+    font-size: 1.5rem;
+}
+
+.location h2 a {
+    color: #fff;
+
+    text-decoration: none;
+}
+
+.coords {
+
+    font-size: .75rem;
+
+    opacity: .75;
+}
+
+.updated {
+
+    font-size: .78rem;
+
+    opacity: .75;
+
+    margin-bottom: 6px;
+}
+
+.forecast-link {
+
+    display: inline-block;
+
+    font-size: .82rem;
+
+    font-weight: 700;
+
+    color: #fff;
+
+    background:
+        rgba(255,255,255,.2);
+
+    padding:
+        6px 14px;
+
+    border-radius: 999px;
+
+    text-decoration: none;
+
+    margin-bottom: 24px;
+}
+
+
+/* =========================================================
+   TEMPERATURE
+========================================================= */
+
+.headline {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 22px;
+
+    margin-bottom: 12px;
+}
+
+.headline .icon {
+
+    font-size: 4rem;
+
+    line-height: 1;
+
+    animation:
+        bob 3s ease-in-out infinite;
+}
+
+
+@keyframes bob {
+
+    0%,100% {
+        transform:
+            translateY(0);
+    }
+
+    50% {
+        transform:
+            translateY(-6px);
+    }
+}
+
+
+.temp {
+
+    font-size: 4rem;
+
+    font-weight: 800;
+
+    line-height: 1;
+}
+
+.condition {
+
+    font-size: 1.1rem;
+
+    opacity: .9;
+
+    margin-top: 6px;
+
+    font-weight: 600;
+}
+
+.mood-note {
+
+    font-size: .86rem;
+
+    opacity: .85;
+
+    font-style: italic;
+
+    margin:
+        0 0 22px;
+}
+
+
+/* =========================================================
+   WEATHER DETAILS
+========================================================= */
+
+.grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3,1fr);
+
+    gap: 12px;
+}
+
+.stat {
+
+    background:
+        rgba(255,255,255,.16);
+
+    backdrop-filter:
+        blur(4px);
+
+    border-radius: 16px;
+
+    padding: 16px;
+
+    text-align: center;
+}
+
+.stat .label {
+
+    font-size: .66rem;
+
+    text-transform:
+        uppercase;
+
+    opacity: .75;
+
+    font-weight: 600;
+}
+
+.stat .value {
+
+    font-size: 1.15rem;
+
+    margin-top: 6px;
+
+    font-weight: 800;
+}
+
+
+footer {
+
+    margin-top: 22px;
+
+    font-size: .75rem;
+
+    opacity: .5;
+
+    text-align: center;
+}
+
+footer a {
+    color: var(--accent2);
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media(max-width:480px) {
+
+    .grid {
+        grid-template-columns:
+            repeat(2,1fr);
+    }
+
+    .temp {
+        font-size: 3rem;
+    }
+
+    .headline .icon {
+        font-size: 3rem;
+    }
+}
+
+
+@media(prefers-reduced-motion:reduce) {
+
+    * {
+        animation: none !important;
+    }
+}
+
+</style>
+</head>
+
+
+<body>
+
+<div class="sheet">
+
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<div class="masthead">
+
+    <h1>Weathervane</h1>
+
+    <div class="date-badge">
+
+        <div class="tab" id="badgeMonth">
+            —
+        </div>
+
+        <div class="day-num" id="badgeDay">
+            --
+        </div>
+
+        <div class="weekday" id="badgeWeekday">
+            —
+        </div>
+
+        <div class="month-year" id="badgeYear">
+            ----
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     CONTROLS
+===================================================== -->
+
+<div class="controls-row">
+
+    <form class="search" id="searchForm">
+
+        <input
+            type="text"
+            id="cityInput"
+            placeholder="Enter a city, e.g. Ooty"
+            autocomplete="off"
+        >
+
+        <button
+            type="submit"
+            id="searchBtn"
+        >
+            Search
+        </button>
+
+    </form>
+
+
+    <button
+        type="button"
+        id="locateBtn"
+    >
+        📍 My Location
+    </button>
+
+
+    <div class="unit-toggle">
+
+        <button
+            type="button"
+            id="unitC"
+            class="active"
+        >
+            °C
+        </button>
+
+        <button
+            type="button"
+            id="unitF"
+        >
+            °F
+        </button>
+
+    </div>
+
+</div>
+
+
+<p class="hint">
+    Data from Open-Meteo — no API key required.
+</p>
+
+
+<div
+    class="status"
+    id="status"
+></div>
+
+
+<!-- =====================================================
+     WEATHER CARD
+===================================================== -->
+
+<div
+    class="card"
+    id="card"
+>
+
+
+    <!-- ALL ANIMATIONS ARE CREATED HERE -->
+
+    <div
+        class="fx-layer"
+        id="fxLayer"
+    ></div>
+
+
+    <div class="location">
+
+        <h2>
+
+            <a
+                id="cityLink"
+                href="#"
+                target="_blank"
+            >
+                —
+            </a>
+
+        </h2>
+
+        <span
+            class="coords"
+            id="coords"
+        ></span>
+
+    </div>
+
+
+    <div
+        class="updated"
+        id="updated"
+    ></div>
+
+
+    <a
+        class="forecast-link"
+        id="forecastLink"
+        href="#"
+        target="_blank"
+    >
+        Full forecast on Open-Meteo →
+    </a>
+
+
+    <div class="headline">
+
+        <div
+            class="icon"
+            id="icon"
+        >
+            ☀️
+        </div>
+
+
+        <div>
+
+            <div class="temp">
+
+                <span id="temp">
+                    --
+                </span>
+
+                <span id="unitLabel">
+                    °C
+                </span>
+
+            </div>
+
+
+            <div
+                class="condition"
+                id="condition"
+            >
+                —
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <p
+        class="mood-note"
+        id="moodNote"
+    ></p>
+
+
+    <div class="grid">
+
+        <div class="stat">
+
+            <div class="label">
+                Feels like
+            </div>
+
+            <div
+                class="value"
+                id="feelsLike"
+            >
+                --
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="label">
+                Humidity
+            </div>
+
+            <div
+                class="value"
+                id="humidity"
+            >
+                --
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="label">
+                Wind
+            </div>
+
+            <div
+                class="value"
+                id="wind"
+            >
+                --
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="label">
+                Pressure
+            </div>
+
+            <div
+                class="value"
+                id="pressure"
+            >
+                --
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="label">
+                Cloud cover
+            </div>
+
+            <div
+                class="value"
+                id="cloudCover"
+            >
+                --
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="label">
+                Wind dir.
+            </div>
+
+            <div
+                class="value"
+                id="windDir"
+            >
+                --
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<footer>
+
+    Geocoding & forecast via
+
+    <a
+        href="https://open-meteo.com"
+        target="_blank"
+    >
+        Open-Meteo
+    </a>
+
+</footer>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   ELEMENTS
+========================================================= */
+
+const form =
+    document.getElementById("searchForm");
+
+const input =
+    document.getElementById("cityInput");
+
+const btn =
+    document.getElementById("searchBtn");
+
+const locateBtn =
+    document.getElementById("locateBtn");
+
+const unitCBtn =
+    document.getElementById("unitC");
+
+const unitFBtn =
+    document.getElementById("unitF");
+
+const statusEl =
+    document.getElementById("status");
+
+const card =
+    document.getElementById("card");
+
+const fxLayer =
+    document.getElementById("fxLayer");
+
+
+let unit = "C";
+
+let lastWeatherData = null;
+
+let lastPlace = null;
+
+
+/* =========================================================
+   DATE
+========================================================= */
+
+(function renderDateBadge() {
+
+    const now = new Date();
+
+    document.getElementById("badgeMonth")
+        .textContent =
+        now.toLocaleDateString(
+            undefined,
+            {
+                month: "short"
+            }
+        );
+
+    document.getElementById("badgeDay")
+        .textContent =
+        now.getDate();
+
+    document.getElementById("badgeWeekday")
+        .textContent =
+        now.toLocaleDateString(
+            undefined,
+            {
+                weekday: "short"
+            }
+        );
+
+    document.getElementById("badgeYear")
+        .textContent =
+        now.getFullYear();
+
+})();
+
+
+/* =========================================================
+   WEATHER CODES
+========================================================= */
+
+const WMO = {
+
+    0: [
+        "Clear sky",
+        "☀️",
+        "clear",
+        "Sunny weather — perfect day to be outside!"
+    ],
+
+    1: [
+        "Mainly clear",
+        "🌤️",
+        "clear",
+        "Mostly sunny with a few clouds."
+    ],
+
+    2: [
+        "Partly cloudy",
+        "⛅",
+        "cloudy",
+        "Sun and clouds are sharing the sky."
+    ],
+
+    3: [
+        "Overcast",
+        "☁️",
+        "cloudy",
+        "A soft grey blanket covers the sky."
+    ],
+
+    45: [
+        "Fog",
+        "🌫️",
+        "fog",
+        "The world is wrapped in a dreamy haze."
+    ],
+
+    48: [
+        "Rime fog",
+        "🌫️",
+        "fog",
+        "Frosty fog is settling in."
+    ],
+
+    51: [
+        "Light drizzle",
+        "🌦️",
+        "rain",
+        "Just a light sprinkle."
+    ],
+
+    53: [
+        "Moderate drizzle",
+        "🌦️",
+        "rain",
+        "A gentle drizzle is falling."
+    ],
+
+    55: [
+        "Dense drizzle",
+        "🌧️",
+        "rain",
+        "Fine rain is coming down."
+    ],
+
+    61: [
+        "Slight rain",
+        "🌦️",
+        "rain",
+        "A light rain is falling."
+    ],
+
+    63: [
+        "Moderate rain",
+        "🌧️",
+        "rain",
+        "Steady rain — take an umbrella."
+    ],
+
+    65: [
+        "Heavy rain",
+        "🌧️",
+        "rain",
+        "Heavy rain is falling."
+    ],
+
+    71: [
+        "Slight snowfall",
+        "🌨️",
+        "snow",
+        "Delicate snowflakes are drifting down."
+    ],
+
+    73: [
+        "Moderate snowfall",
+        "❄️",
+        "snow",
+        "Everything is turning white."
+    ],
+
+    75: [
+        "Heavy snowfall",
+        "❄️",
+        "snow",
+        "Big snow day!"
+    ],
+
+    80: [
+        "Rain showers",
+        "🌦️",
+        "rain",
+        "Passing showers."
+    ],
+
+    81: [
+        "Moderate rain showers",
+        "🌧️",
+        "rain",
+        "On-and-off showers."
+    ],
+
+    82: [
+        "Violent rain showers",
+        "⛈️",
+        "storm",
+        "Intense rain showers."
+    ],
+
+    85: [
+        "Snow showers",
+        "🌨️",
+        "snow",
+        "Light snow flurries."
+    ],
+
+    86: [
+        "Heavy snow showers",
+        "❄️",
+        "snow",
+        "Big snow flurries."
+    ],
+
+    95: [
+        "Thunderstorm",
+        "⛈️",
+        "storm",
+        "Thunder is rumbling."
+    ],
+
+    96: [
+        "Thunderstorm with hail",
+        "⛈️",
+        "storm",
+        "Storm with hail."
+    ],
+
+    99: [
+        "Heavy thunderstorm",
+        "⛈️",
+        "storm",
+        "Serious storm — stay indoors."
+    ]
+
+};
+
+
+/* =========================================================
+   RANDOM NUMBER
+========================================================= */
+
+function rand(min,max) {
+
+    return Math.random() *
+        (max - min) +
+        min;
+}
+
+
+/* =========================================================
+   CELSIUS TO FAHRENHEIT
+========================================================= */
+
+function cToF(c) {
+
+    return (c * 9 / 5) + 32;
+}
+
+
+/* =========================================================
+   WIND DIRECTION
+========================================================= */
+
+function degToCompass(deg) {
+
+    const dirs = [
+
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW"
+
+    ];
+
+    return dirs[
+        Math.round(deg / 22.5) % 16
+    ];
+}
+
+
+/* =========================================================
+   WEATHER EFFECTS
+========================================================= */
+
+function renderWeatherFX(theme) {
+
+    fxLayer.innerHTML = "";
+
+
+    /* -----------------------------------------------
+       SUN
+    ----------------------------------------------- */
+
+    if(theme === "clear") {
+
+        for(let i = 0; i < 5; i++) {
+
+            const ray =
+                document.createElement("span");
+
+            ray.className =
+                "fx-ray";
+
+            ray.textContent =
+                "✨";
+
+            ray.style.left =
+                rand(10,80) + "%";
+
+            ray.style.top =
+                rand(5,40) + "%";
+
+            ray.style.animationDelay =
+                rand(0,3) + "s";
+
+            fxLayer.appendChild(ray);
+        }
+    }
+
+
+    /* -----------------------------------------------
+       CLOUDS
+    ----------------------------------------------- */
+
+    if(
+        theme === "cloudy" ||
+        theme === "clear"
+    ) {
+
+        const count =
+            theme === "cloudy"
+                ? 5
+                : 2;
+
+        for(
+            let i = 0;
+            i < count;
+            i++
+        ) {
+
+            const cloud =
+                document.createElement("span");
+
+            cloud.className =
+                "fx-cloud";
+
+            cloud.textContent =
+                "☁️";
+
+            cloud.style.top =
+                rand(5,50) + "%";
+
+            cloud.style.animationDuration =
+                rand(18,32) + "s";
+
+            cloud.style.animationDelay =
+                -rand(0,20) + "s";
+
+            fxLayer.appendChild(cloud);
+        }
+    }
+
+
+    /* -----------------------------------------------
+       RAIN
+    ----------------------------------------------- */
+
+    if(
+        theme === "rain" ||
+        theme === "storm"
+    ) {
+
+        const count =
+            theme === "storm"
+                ? 20
+                : 15;
+
+        for(
+            let i = 0;
+            i < count;
+            i++
+        ) {
+
+            const drop =
+                document.createElement("span");
+
+            drop.className =
+                "fx-drop";
+
+            drop.textContent =
+                "💧";
+
+            drop.style.left =
+                rand(0,100) + "%";
+
+            drop.style.animationDuration =
+                rand(.7,2) + "s";
+
+            drop.style.animationDelay =
+                -rand(0,2) + "s";
+
+            fxLayer.appendChild(drop);
+        }
+    }
+
+
+    /* -----------------------------------------------
+       LIGHTNING
+    ----------------------------------------------- */
+
+    if(theme === "storm") {
+
+        const bolt =
+            document.createElement("span");
+
+        bolt.className =
+            "fx-bolt";
+
+        bolt.textContent =
+            "⚡";
+
+        fxLayer.appendChild(bolt);
+    }
+
+
+    /* -----------------------------------------------
+       SNOW
+    ----------------------------------------------- */
+
+    if(theme === "snow") {
+
+        for(
+            let i = 0;
+            i < 25;
+            i++
+        ) {
+
+            const flake =
+                document.createElement("span");
+
+            flake.className =
+                "fx-flake";
+
+            flake.textContent =
+                ["❄️","❅","❆"][
+                    Math.floor(
+                        rand(0,3)
+                    )
+                ];
+
+            flake.style.left =
+                rand(0,100) + "%";
+
+            flake.style.animationDuration =
+                rand(5,10) + "s";
+
+            flake.style.animationDelay =
+                -rand(0,9) + "s";
+
+            fxLayer.appendChild(flake);
+        }
+    }
+
+
+    /* -----------------------------------------------
+       REAL ANIMALS + INSECTS
+    ----------------------------------------------- */
+
+    renderAnimals(theme);
+}
+
+
+/* =========================================================
+   CREATE REAL BIRD
+========================================================= */
+
+function createRealBird() {
+
+    const bird =
+        document.createElement("div");
+
+    bird.className =
+        "creature real-bird";
+
+
+    bird.innerHTML = `
+
+        <div class="bird-wing back"></div>
+
+        <div class="bird-wing"></div>
+
+        <div class="bird-body"></div>
+
+        <div class="bird-head"></div>
+
+        <div class="bird-eye"></div>
+
+        <div class="bird-beak"></div>
+
+    `;
+
+
+    bird.style.top =
+        rand(8,35) + "%";
+
+
+    bird.style.animationDuration =
+        rand(8,15) + "s";
+
+
+    bird.style.animationDelay =
+        -rand(0,12) + "s";
+
+
+    return bird;
+}
+
+
+/* =========================================================
+   CREATE BUTTERFLY
+========================================================= */
+
+function createButterfly() {
+
+    const butterfly =
+        document.createElement("div");
+
+    butterfly.className =
+        "creature real-butterfly";
+
+
+    butterfly.innerHTML = `
+
+        <div
+            class="butterfly-body"
+        ></div>
+
+        <div
+            class="butterfly-wing left top"
+        ></div>
+
+        <div
+            class="butterfly-wing right top"
+        ></div>
+
+        <div
+            class="butterfly-wing left bottom"
+        ></div>
+
+        <div
+            class="butterfly-wing right bottom"
+        ></div>
+
+    `;
+
+
+    const colors = [
+
+        "#ff7043",
+        "#42a5f5",
+        "#ab47bc",
+        "#ffd54f"
+
+    ];
+
+
+    const color =
+        colors[
+            Math.floor(
+                Math.random() *
+                colors.length
+            )
+        ];
+
+
+    butterfly
+        .querySelectorAll(
+            ".butterfly-wing"
+        )
+        .forEach(
+            wing => {
+
+                wing.style.background =
+                    color;
+            }
+        );
+
+
+    butterfly.style.animationDuration =
+        rand(7,11) + "s";
+
+
+    butterfly.style.animationDelay =
+        -rand(0,8) + "s";
+
+
+    return butterfly;
+}
+
+
+/* =========================================================
+   CREATE DRAGONFLY
+========================================================= */
+
+function createDragonfly() {
+
+    const dragonfly =
+        document.createElement("div");
+
+    dragonfly.className =
+        "creature dragonfly";
+
+
+    dragonfly.innerHTML = `
+
+        <div class="dragon-body"></div>
+
+        <div class="dragon-wing one"></div>
+
+        <div class="dragon-wing two"></div>
+
+        <div class="dragon-wing three"></div>
+
+        <div class="dragon-wing four"></div>
+
+    `;
+
+
+    dragonfly.style.animationDuration =
+        rand(5,8) + "s";
+
+
+    return dragonfly;
+}
+
+
+/* =========================================================
+   CREATE FIREFLY
+========================================================= */
+
+function createFirefly() {
+
+    const firefly =
+        document.createElement("div");
+
+    firefly.className =
+        "creature firefly-real";
+
+
+    firefly.style.left =
+        rand(5,90) + "%";
+
+
+    firefly.style.top =
+        rand(35,85) + "%";
+
+
+    firefly.style.animationDelay =
+        -rand(0,5) + "s";
+
+
+    return firefly;
+}
+
+
+/* =========================================================
+   CREATE FROG
+========================================================= */
+
+function createFrog() {
+
+    const frog =
+        document.createElement("div");
+
+    frog.className =
+        "creature real-frog";
+
+
+    frog.innerHTML = `
+
+        <div class="frog-body"></div>
+
+        <div class="frog-eye left">
+
+            <div
+                class="frog-pupil"
+            ></div>
+
+        </div>
+
+        <div class="frog-eye right">
+
+            <div
+                class="frog-pupil"
+            ></div>
+
+        </div>
+
+    `;
+
+
+    frog.style.left =
+        rand(5,25) + "%";
+
+
+    frog.style.animationDelay =
+        -rand(0,3) + "s";
+
+
+    return frog;
+}
+
+
+/* =========================================================
+   CREATE SNAIL
+========================================================= */
+
+function createSnail() {
+
+    const snail =
+        document.createElement("div");
+
+    snail.className =
+        "creature real-snail";
+
+
+    snail.innerHTML = `
+
+        <div class="snail-shell"></div>
+
+        <div class="snail-head"></div>
+
+    `;
+
+
+    snail.style.animationDelay =
+        -rand(0,12) + "s";
+
+
+    return snail;
+}
+
+
+/* =========================================================
+   WEATHER BASED ANIMALS
+========================================================= */
+
+function renderAnimals(theme) {
+
+
+    /* ================================================
+       SUNNY
+       Birds + butterflies + dragonflies
+    ================================================ */
+
+    if(theme === "clear") {
+
+        for(
+            let i = 0;
+            i < 4;
+            i++
+        ) {
+
+            fxLayer.appendChild(
+                createRealBird()
+            );
+        }
+
+
+        for(
+            let i = 5;
+            i--;
+        ) {
+
+            fxLayer.appendChild(
+                createButterfly()
+            );
+        }
+
+
+        for(
+            let i = 0;
+            i < 2;
+            i++
+        ) {
+
+            fxLayer.appendChild(
+                createDragonfly()
+            );
+        }
+    }
+
+
+    /* ================================================
+       CLOUDY
+       Birds
+    ================================================ */
+
+    if(theme === "cloudy") {
+
+        for(
+            let i = 0;
+            i < 4;
+            i++
+        ) {
+
+            fxLayer.appendChild(
+                createRealBird()
+            );
+        }
+    }
+
+
+    /* ================================================
+       RAIN
+       Frogs + snails + dragonfly
+    ================================================ */
+
+    if(theme === "rain") {
+
+        for(
+            let i = 0;
+            i < 3;
+            i++
+        ) {
+
+            fxLayer.appendChild(
+                createFrog()
+            );
+        }
+
+
+        for(
+            let i = 0;
+            i < 2;
+            i++
+        ) {
+
+            fxLayer.appendChild(
+                createSnail()
+            );
+        }
+
+
+        fxLayer.appendChild(
+            createDragonfly()
+        );
+    }
+
+
+    /* ================================================
+       STORM
+       Birds escaping from storm
+    ================================================ */
+
+    if(theme === "storm") {
+
+        for(
+            let i = 0;
+            i < 2;
+            i++
+        ) {
+
+            const bird =
+                createRealBird();
+
+            bird.style.animationDuration =
+                "4s";
+
+            fxLayer.appendChild(bird);
+        }
+    }
+
+
+    /* ================================================
+       SNOW
+       Slow flying bird
+    ================================================ */
+
+    if(theme === "snow") {
+
+        const bird =
+            createRealBird();
+
+        bird.style.animationDuration =
+            "18s";
+
+        bird.style.opacity =
+            ".6";
+
+        fxLayer.appendChild(bird);
+    }
+
+
+    /* ================================================
+       FOG
+       Slow bird + fireflies
+    ================================================ */
+
+    if(theme === "fog") {
+
+        const bird =
+            createRealBird();
+
+        bird.style.animationDuration =
+            "20s";
+
+        bird.style.opacity =
+            ".5";
+
+        fxLayer.appendChild(bird);
+
+
+        for(
+            let i = 0;
+            i < 10;
+            i++
+        ) {
+
+            fxLayer.appendChild(
+                createFirefly()
+            );
+        }
+    }
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+function showStatus(
+    message,
+    kind
+) {
+
+    statusEl.textContent =
+        message;
+
+    statusEl.className =
+        "status visible" +
+        (
+            kind === "loading"
+                ? " loading"
+                : ""
+        );
+}
+
+
+function hideStatus() {
+
+    statusEl.className =
+        "status";
+}
+
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+function setLoading(value) {
+
+    btn.disabled = value;
+
+    locateBtn.disabled = value;
+
+    input.disabled = value;
+}
+
+
+/* =========================================================
+   GEOCODING
+========================================================= */
+
+async function geocodeCity(name) {
+
+    const url =
+        `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=1&language=en&format=json`;
+
+
+    const res =
+        await fetch(url);
+
+
+    if(!res.ok) {
+
+        throw new Error(
+            "The location lookup failed. Try again."
+        );
+    }
+
+
+    const data =
+        await res.json();
+
+
+    if(
+        !data.results ||
+        data.results.length === 0
+    ) {
+
+        throw new Error(
+            `No place called "${name}" was found.`
+        );
+    }
+
+
+    return data.results[0];
+}
+
+
+/* =========================================================
+   WEATHER API
+========================================================= */
+
+async function fetchWeather(
+    lat,
+    lon
+) {
+
+    const url =
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+        `&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m,pressure_msl,cloud_cover,weather_code` +
+        `&timezone=auto`;
+
+
+    const res =
+        await fetch(url);
+
+
+    if(!res.ok) {
+
+        throw new Error(
+            "The forecast service did not respond."
+        );
+    }
+
+
+    const data =
+        await res.json();
+
+
+    if(!data.current) {
+
+        throw new Error(
+            "No current weather conditions returned."
+        );
+    }
+
+
+    return data;
+}
+
+
+/* =========================================================
+   RENDER WEATHER
+========================================================= */
+
+function renderWeather(
+    place,
+    weatherData
+) {
+
+    lastPlace =
+        place;
+
+    lastWeatherData =
+        weatherData;
+
+
+    const c =
+        weatherData.current;
+
+
+    const [
+        description,
+        icon,
+        theme,
+        mood
+    ] =
+        WMO[c.weather_code] ||
+        [
+            "Unknown conditions",
+            "❔",
+            "cloudy",
+            ""
+        ];
+
+
+    const fullName =
+        [
+            place.name,
+            place.admin1,
+            place.country
+        ]
+        .filter(Boolean)
+        .join(", ");
+
+
+    document.getElementById(
+        "cityLink"
+    ).textContent =
+        fullName;
+
+
+    document.getElementById(
+        "cityLink"
+    ).href =
+        `https://www.google.com/maps?q=${place.latitude},${place.longitude}`;
+
+
+    document.getElementById(
+        "forecastLink"
+    ).href =
+        `https://open-meteo.com/en/docs?latitude=${place.latitude}&longitude=${place.longitude}`;
+
+
+    document.getElementById(
+        "coords"
+    ).textContent =
+        `${place.latitude.toFixed(2)}, ${place.longitude.toFixed(2)}`;
+
+
+    document.getElementById(
+        "updated"
+    ).textContent =
+        "Observed " +
+        new Date(
+            c.time
+        ).toLocaleString();
+
+
+    document.getElementById(
+        "icon"
+    ).textContent =
+        icon;
+
+
+    document.getElementById(
+        "condition"
+    ).textContent =
+        description;
+
+
+    document.getElementById(
+        "moodNote"
+    ).textContent =
+        mood;
+
+
+    document.getElementById(
+        "humidity"
+    ).textContent =
+        Math.round(
+            c.relative_humidity_2m
+        ) + "%";
+
+
+    document.getElementById(
+        "wind"
+    ).textContent =
+        Math.round(
+            c.wind_speed_10m
+        ) + " km/h";
+
+
+    document.getElementById(
+        "pressure"
+    ).textContent =
+        Math.round(
+            c.pressure_msl
+        ) + " hPa";
+
+
+    document.getElementById(
+        "cloudCover"
+    ).textContent =
+        Math.round(
+            c.cloud_cover
+        ) + "%";
+
+
+    document.getElementById(
+        "windDir"
+    ).textContent =
+        degToCompass(
+            c.wind_direction_10m
+        );
+
+
+    applyUnit();
+
+
+    card.className =
+        "card visible theme-" +
+        theme;
+
+
+    /*
+       Creates:
+       Weather animation
+       +
+       Real animal animation
+    */
+
+    renderWeatherFX(theme);
+}
+
+
+/* =========================================================
+   UNIT
+========================================================= */
+
+function applyUnit() {
+
+    if(!lastWeatherData)
+        return;
+
+
+    const c =
+        lastWeatherData.current;
+
+
+    const temp =
+        unit === "C"
+            ? c.temperature_2m
+            : cToF(
+                c.temperature_2m
+            );
+
+
+    const feels =
+        unit === "C"
+            ? c.apparent_temperature
+            : cToF(
+                c.apparent_temperature
+            );
+
+
+    document.getElementById(
+        "temp"
+    ).textContent =
+        Math.round(temp);
+
+
+    document.getElementById(
+        "unitLabel"
+    ).textContent =
+        "°" + unit;
+
+
+    document.getElementById(
+        "feelsLike"
+    ).textContent =
+        Math.round(feels) +
+        "°" +
+        unit;
+}
+
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+async function handleSearch(
+    rawCity
+) {
+
+    const city =
+        rawCity.trim();
+
+
+    if(!city) {
+
+        card.className =
+            "card";
+
+        showStatus(
+            "Type a city name before searching.",
+            "error"
+        );
+
+        return;
+    }
+
+
+    hideStatus();
+
+    card.className =
+        "card";
+
+
+    setLoading(true);
+
+
+    showStatus(
+        `Looking up "${city}" …`,
+        "loading"
+    );
+
+
+    try {
+
+        const place =
+            await geocodeCity(city);
+
+
+        showStatus(
+            `Fetching current conditions for ${place.name} …`,
+            "loading"
+        );
+
+
+        const weatherData =
+            await fetchWeather(
+                place.latitude,
+                place.longitude
+            );
+
+
+        hideStatus();
+
+
+        renderWeather(
+            place,
+            weatherData
+        );
+
+    }
+
+    catch(err) {
+
+        card.className =
+            "card";
+
+
+        showStatus(
+            err.message ||
+            "Something went wrong.",
+            "error"
+        );
+
+    }
+
+    finally {
+
+        setLoading(false);
+    }
+}
+
+
+/* =========================================================
+   LOCATION
+========================================================= */
+
+function handleLocate() {
+
+    if(
+        !navigator.geolocation
+    ) {
+
+        showStatus(
+            "Your browser does not support location lookup.",
+            "error"
+        );
+
+        return;
+    }
+
+
+    hideStatus();
+
+    card.className =
+        "card";
+
+
+    setLoading(true);
+
+
+    showStatus(
+        "Getting your location …",
+        "loading"
+    );
+
+
+    navigator.geolocation.getCurrentPosition(
+
+        async(position) => {
+
+            const {
+                latitude,
+                longitude
+            } =
+                position.coords;
+
+
+            try {
+
+                showStatus(
+                    "Fetching current conditions …",
+                    "loading"
+                );
+
+
+                const weatherData =
+                    await fetchWeather(
+                        latitude,
+                        longitude
+                    );
+
+
+                hideStatus();
+
+
+                renderWeather(
+
+                    {
+                        name:
+                            "My Location",
+
+                        admin1:
+                            "",
+
+                        country:
+                            "",
+
+                        latitude,
+
+                        longitude
+                    },
+
+                    weatherData
+                );
+
+
+                input.value =
+                    "";
+
+            }
+
+            catch(err) {
+
+                card.className =
+                    "card";
+
+
+                showStatus(
+                    err.message,
+                    "error"
+                );
+
+            }
+
+            finally {
+
+                setLoading(false);
+            }
+        },
+
+
+        () => {
+
+            setLoading(false);
+
+
+            showStatus(
+                "Location access was denied. Search by city instead.",
+                "error"
+            );
+        }
+
+    );
+}
+
+
+/* =========================================================
+   EVENTS
+========================================================= */
+
+form.addEventListener(
+    "submit",
+    (e) => {
+
+        e.preventDefault();
+
+        handleSearch(
+            input.value
+        );
+    }
+);
+
+
+locateBtn.addEventListener(
+    "click",
+    handleLocate
+);
+
+
+unitCBtn.addEventListener(
+    "click",
+    () => {
+
+        unit = "C";
+
+        unitCBtn.classList.add(
+            "active"
+        );
+
+        unitFBtn.classList.remove(
+            "active"
+        );
+
+        applyUnit();
+    }
+);
+
+
+unitFBtn.addEventListener(
+    "click",
+    () => {
+
+        unit = "F";
+
+        unitFBtn.classList.add(
+            "active"
+        );
+
+        unitCBtn.classList.remove(
+            "active"
+        );
+
+        applyUnit();
+    }
+);
+
+
+/* =========================================================
+   DEFAULT CITY
+========================================================= */
+
+input.value =
+    "Chennai";
+
+handleSearch(
+    "Chennai"
+);
+
+</script>
+
+</body>
+</html>
+
